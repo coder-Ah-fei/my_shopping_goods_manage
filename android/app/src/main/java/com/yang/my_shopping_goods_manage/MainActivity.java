@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.yang.my_shopping_goods_manage.utils.FileChooseUtil;
 
@@ -25,6 +24,7 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 public class MainActivity extends FlutterActivity {
     //channel的名称，由于app中可能会有多个channel，这个名称需要在app内是唯一的。
     private static final String CHANNEL_OPENFILEMANAGER = "samples.flutter.io/openFileManager";
+//    private static final String CHANNEL_IMPORTDATA = "samples.flutter.io/importData";
     private static final String CHANNEL_TEXTLIST = "samples.flutter.io/textList";
     private EventChannel.EventSink sink;
 
@@ -73,7 +73,6 @@ public class MainActivity extends FlutterActivity {
                         e.printStackTrace();
                     }
                 }
-                Toast.makeText(this, "文件路径11："+ chooseFileResultPath, Toast.LENGTH_LONG).show();
             }
 
         }
@@ -101,12 +100,13 @@ public class MainActivity extends FlutterActivity {
                     if (methodCall.method.equals("openFileManager")) {
                         openFileSelector();
 //                        openAssignFolder("/storage/emulated/0/Tencent/QQfile_recv/");
-                    } else {
-                        result.notImplemented();
+                    } else if(methodCall.method.equals("importData")) {
+                        String args1 = methodCall.argument("args1");
+                        writeData(args1);
+                        result.success(0);
                     }
                 }
         );
-
     }
 
 
@@ -119,10 +119,10 @@ public class MainActivity extends FlutterActivity {
 
 
 
-    private void writeData() {
-        String filePath = "/sdcard/Gyt/";
-        String fileName = "data.txt";
-        writeTxtToFile("Wx:lcti1314", filePath, fileName);
+    private void writeData(String data) {
+        String filePath = "/sdcard/xicunshudianApp/";
+        String fileName = "shudianData.txt";
+        writeTxtToFile(data, filePath, fileName);
     }
 
     // 将字符串写入到文本文件中
@@ -135,6 +135,9 @@ public class MainActivity extends FlutterActivity {
         String strContent = strcontent + "\r\n";
         try {
             File file = new File(strFilePath);
+            if(file.exists()){
+                file.delete();
+            }
             if (!file.exists()) {
                 Log.d("TestFile", "Create the file:" + strFilePath);
                 file.getParentFile().mkdirs();

@@ -51,7 +51,7 @@ class ShoppingGoodsDbProvider extends BaseDbProvider{
   Future getPersonProviderByBarcode(String barcode) async {
     Database db = await getDataBase();
     List<Map<String, dynamic>> maps =
-    await db.rawQuery("select * from $name where $columnBarcode = $barcode");
+    await db.rawQuery("select * from $name where $columnBarcode = '$barcode'");
     return maps;
   }
 

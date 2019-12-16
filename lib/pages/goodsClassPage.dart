@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:my_shopping_goods_manage/pages/sqflite/shoppinpgoods_db_provider.dart';
 import 'package:my_shopping_goods_manage/model/shoppinggoods_model.dart';
 import 'package:share/share.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 class GoodsClassPage extends StatefulWidget {
   @override
   _GoodsClassPageState createState() => _GoodsClassPageState();
 }
 
 class _GoodsClassPageState extends State<GoodsClassPage> {
-
+  static const _channelOpenFileManager = const MethodChannel('samples.flutter.io/openFileManager');
   List<TableRow> _listTableData = [];
 
   @override
@@ -38,10 +40,9 @@ class _GoodsClassPageState extends State<GoodsClassPage> {
     return SafeArea(
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.share),
+          child: Text("导出"),
             onPressed: (){
-              localPath();
-//              Share.share('check out my website https://example.com');
+              _importDataFun();
             }
         ),
         body: NestedScrollView(
@@ -79,6 +80,35 @@ class _GoodsClassPageState extends State<GoodsClassPage> {
     );
   }
 
+  void _importDataFun() async {
+    ShoppingGoodsDbProvider provider = new ShoppingGoodsDbProvider();
+    List<Map> shoppingGoods = await provider.getPersonProvider(await provider.getDataBase());
+    print("flutter importData");
+    String args1 = "";
+    for(Map map in shoppingGoods){
+      args1 += map["barcode"].toString() + "\t";
+      args1 += map["name"].toString() + "\t";
+      args1 += map["className"].toString() + "\t";
+      args1 += map["price"].toString() + "\t";
+      args1 += "\r\n";
+    }
+
+    Map<String, Object> params = {"args1": args1};
+    final int result = await _channelOpenFileManager.invokeMethod('importData', params);
+    if(result == 0){
+      Fluttertoast.showToast(
+          msg: "导出成功文件路径为【/sdcard/xicunshudianApp/】",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIos: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+    }
+    print(result);
+
+  }
 
   Future _search() async{
     ShoppingGoodsDbProvider provider = new ShoppingGoodsDbProvider();

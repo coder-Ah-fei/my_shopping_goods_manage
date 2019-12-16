@@ -45,20 +45,48 @@ class _HomePageState extends State<HomePage> {
     print(obj);
     String text = obj == null ? "" : obj.toString();
     List<String> list = text.split(",");
+    int total = list.length;
+    int successInsertNum = 0;
+    int successUpdateNum = 0;
     for (var i = 1; i < list.length; i++) {
       List<String> lineData = list[i].split("\t");
       ShoppingGoodsDbProvider provider = new ShoppingGoodsDbProvider();
       List<Map> shoppingGoodsList = await provider.getPersonProviderByBarcode(lineData[0]);
-      if(shoppingGoodsList.length > 0){
-        continue;
-      }
+
       ShoppingGoods shoppingGoods= ShoppingGoods();
       shoppingGoods.barcode = lineData[0];
       shoppingGoods.name = lineData[1];
       shoppingGoods.className = lineData[2];
       shoppingGoods.price = lineData[3];
-      provider.insert(shoppingGoods);
+
+      if(shoppingGoodsList.length > 0){
+        // 如果存在，则更新
+        provider.update(shoppingGoods);
+        successUpdateNum += 1;
+      }else{
+        // 否则插入
+        provider.insert(shoppingGoods);
+        successInsertNum += 1;
+      }
     }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context){
+        return AlertDialog(
+            title: Text("提示"),
+            content: Text("导入成功，一共$total条，其中更新$successUpdateNum条,新增$successInsertNum条"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("关闭"),
+                onPressed: (){
+                  Navigator.of(context).pop();
+                },
+              )
+            ]
+        );
+      }
+    );
 
     setState(() {
 
@@ -68,7 +96,6 @@ class _HomePageState extends State<HomePage> {
   void _onError(Object obj){
 
   }
-
 
   @override
   Widget build(BuildContext context) {
